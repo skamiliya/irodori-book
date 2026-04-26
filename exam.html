@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Final Exam</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="data.js"></script>
+</head>
+<body>
+  <header>
+    <h1 id="exam-title">Exam</h1>
+    <a class="nav-link" id="back-to-book" href="#">Back</a>
+  </header>
+  <main id="exam-content">
+    <p>Loading…</p>
+  </main>
+  <script>
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+    async function init() {
+      const params = new URLSearchParams(window.location.search);
+      const book = params.get('book');
+      const lesson = params.get('lesson'); // optional lesson exam
+      const bookNames = {
+        'starter': 'Starter (入門)',
+        'elementary1': 'Elementary 1 (初級1)',
+        'elementary2': 'Elementary 2 (初級2)',
+        'preintermediate': 'Pre‑Intermediate'
+      };
+      const title = lesson ? `Lesson ${lesson} Test` : `Final Exam`;
+      document.getElementById('exam-title').textContent = `${bookNames[book] || book} – ${title}`;
+      document.getElementById('back-to-book').href = `book.html?book=${book}`;
+      try {
+        // Use globally defined VOCAB_DATA and GRAMMAR_DATA from data.js
+        const vocabData = VOCAB_DATA;
+        const grammarData = GRAMMAR_DATA;
+        // Gather all vocab items from all lessons or specific lesson
+        let vocab = [];
+        if (lesson) {
+          vocab = (vocabData[book] && vocabData[book][lesson]) || [];
+        } else {
+          const lessons = vocabData[book] || {};
+          for (const l in lessons) {
+            vocab = vocab.concat(lessons[l]);
+          }
+        }
+        // Gather grammar
+        let grammar = [];
+        if (lesson) {
+          grammar = (grammarData[book] && grammarData[book][lesson]) || [];
+        } else {
+          const gLessons = grammarData[book] || {};
+          for (const l in gLessons) {
+            grammar = grammar.concat(gLessons[l]);
+          }
+        }
+        // Build exam HTML
+        let html = '';
+        // Vocabulary Quiz
+        const vocabQuestions = shuffle(vocab.slice()).slice(0, Math.min(20, vocab.length));
+        html += '<section class="exam-section"><h2>Vocabulary Section</h2>';
+        html += '<p>Provide the reading and meaning for each word.</p>';
+        html += '<div id="exam-vocab-questions"></div>';
+        html += '<button id="exam-check-vocab">Check Answers</button>';
+        html += '<div id="exam-vocab-result"></div>';
+        html += '</section>';
+        // Grammar Section
+        const grammarQs = shuffle(grammar.slice()).slice(0, Math.min(5, grammar.length));
+        html += '<section class="exam-section"><h2>Grammar Section</h2>';
+        html += '<p>For each pattern, write a correct Japanese sentence that uses the pattern. Self‑check with examples.</p>';
+        html += '<ol>';
+        grammarQs.forEach(g => {
+          html += `<li><strong>${g.pattern}</strong> – Example: <em>${g.example || ''}</em></li>`;
+        });
+        html += '</ol>';
+        html += '</section>';
+        // Translation Section
+        const translationQs = shuffle(vocab.slice()).slice(0, Math.min(10, vocab.length));
+        html += '<section class="exam-section"><h2>Translation Section</h2>';
+        html += '<p>Translate these Japanese words into English.</p>';
+        html += '<ol>';
+        translationQs.forEach(item => {
+          html += `<li>${item.kanji} – <span style="visibility:hidden">${item.meaning}</span></li>`;
+        });
+        html += '</ol>';
+        html += '</section>';
+        document.getElementById('exam-content').innerHTML = html;
+        // Populate vocab questions
+        const vocabContainer = document.getElementById('exam-vocab-questions');
+        vocabQuestions.forEach((item, idx) => {
+          const div = document.createElement('div');
+          div.className = 'quiz-question';
+          div.innerHTML = `
+            <p><strong>${idx + 1}. ${item.kanji}</strong></p>
+            <label>Reading (ひらがな): <input type="text" data-type="reading" data-answer="${item.reading.trim()}" /></label><br>
+            <label>Meaning (English): <input type="text" data-type="meaning" data-answer="${item.meaning.trim().toLowerCase()}" /></label>
+          `;
+          vocabContainer.appendChild(div);
+        });
+        document.getElementById('exam-check-vocab').addEventListener('click', () => {
+          const inputs = vocabContainer.querySelectorAll('input');
+          let correct = 0;
+          let total = 0;
+          inputs.forEach(input => {
+            total++;
+            const userAns = input.value.trim().toLowerCase();
+            const correctAns = input.dataset.answer.trim().toLowerCase();
+            if (userAns === correctAns) {
+              input.classList.add('correct');
+              input.classList.remove('incorrect');
+              correct++;
+            } else {
+              input.classList.add('incorrect');
+              input.classList.remove('correct');
+            }
+          });
+          const result = document.getElementById('exam-vocab-result');
+          result.innerHTML = `<p>You answered ${correct} out of ${total} fields correctly.</p>`;
+        });
+      } catch (err) {
+        console.error(err);
+        document.getElementById('exam-content').innerHTML = '<p>Error loading data.</p>';
+      }
+    }
+    init();
+  </script>
+</body>
+</html>

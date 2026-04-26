@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="data.js"></script>
+</head>
+<body>
+  <header>
+    <h1 id="lesson-title">Lesson</h1>
+    <a class="nav-link" id="back-link" href="#">Back to Book</a>
+  </header>
+  <main id="lesson-content">
+    <p>Loading…</p>
+  </main>
+  <script>
+    // Utility to shuffle an array
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    async function init() {
+      const params = new URLSearchParams(window.location.search);
+      const book = params.get('book');
+      const lesson = params.get('lesson');
+      const bookNames = {
+        'starter': 'Starter (入門)',
+        'elementary1': 'Elementary 1 (初級1)',
+        'elementary2': 'Elementary 2 (初級2)',
+        'preintermediate': 'Pre‑Intermediate'
+      };
+      if (!book || !lesson) {
+        document.getElementById('lesson-content').innerHTML = '<p>Missing book or lesson parameter.</p>';
+        return;
+      }
+      document.getElementById('lesson-title').textContent = `${bookNames[book] || book} – Lesson ${lesson}`;
+      document.getElementById('back-link').href = `book.html?book=${book}`;
+      try {
+        // Use globally defined VOCAB_DATA and GRAMMAR_DATA from data.js
+        const vocabData = VOCAB_DATA;
+        const grammarData = GRAMMAR_DATA;
+        const vocab = (vocabData[book] && vocabData[book][lesson]) || [];
+        const grammarList = (grammarData[book] && grammarData[book][lesson]) || [];
+
+        let html = '';
+        // Vocabulary Section
+        html += '<section class="vocab-section">';
+        html += '<h2>Vocabulary</h2>';
+        html += '<p>Words for this lesson. Click on a flashcard to reveal the reading and meaning.</p>';
+        // Table
+        html += '<table class="vocab-table"><thead><tr><th>Word</th><th>Reading</th><th>Meaning</th></tr></thead><tbody>';
+        for (const item of vocab) {
+          html += `<tr><td>${item.kanji}</td><td>${item.reading}</td><td>${item.meaning}</td></tr>`;
+        }
+        html += '</tbody></table>';
+        html += '</section>';
+        // Flashcards
+        html += '<section class="flashcards"><h3>Flashcards</h3>';
+        html += '<div class="card-container" id="flashcards"></div></section>';
+        // Quiz Section
+        html += '<section class="quiz-section"><h3>Quiz – Reading & Meaning</h3>';
+        html += '<p>Type the reading (hiragana) and meaning for each word. Click "Check Answers" when finished.</p>';
+        html += '<div id="quiz-questions"></div>';
+        html += '<button id="check-quiz">Check Answers</button>';
+        html += '<div id="quiz-result"></div>';
+        html += '</section>';
+        // Grammar Section
+        html += '<section class="grammar-section"><h2>Grammar Patterns</h2>';
+        if (grammarList.length === 0) {
+          html += '<p>No grammar patterns recorded for this lesson.</p>';
+        } else {
+          html += '<ul>';
+          for (const g of grammarList) {
+            html += `<li><strong>${g.pattern}</strong><br><em>${g.example || ''}</em></li>`;
+          }
+          html += '</ul>';
+        }
+        html += '</section>';
+        // Worksheet Section
+        html += '<section class="worksheet"><h3>Worksheet – Practice</h3><ul id="worksheet-list"></ul></section>';
+        // Conversation Section
+        html += '<section class="kaiwa"><h3>Kaiwa (Conversation) Prompts</h3><ul id="kaiwa-list"></ul></section>';
+        // Reading Section
+        html += '<section class="reading"><h3>Reading Task</h3><ul id="reading-list"></ul></section>';
+        // Speaking Section
+        html += '<section class="speaking"><h3>Speaking Practice</h3><ul id="speaking-list"></ul></section>';
+        // End-of-Lesson Link
+        html += `<a class="nav-link" href="exam.html?book=${book}&lesson=${lesson}">Take Lesson Test</a>`;
+        document.getElementById('lesson-content').innerHTML = html;
+        // After injecting HTML, we can initialize dynamic sections
+        initFlashcards(vocab);
+        initQuiz(vocab);
+        initWorksheet(vocab, grammarList);
+        initKaiwa(vocab, grammarList);
+        initReading(vocab);
+        initSpeaking(vocab);
+      } catch (err) {
+        console.error(err);
+        document.getElementById('lesson-content').innerHTML = '<p>Error loading data.</p>';
+      }
+    }
+    // Initialize flashcards
+    function initFlashcards(vocab) {
+      const container = document.getElementById('flashcards');
+      const cards = shuffle(vocab.slice());
+      for (const item of cards) {
+        const card = document.createElement('div');
+        card.className = 'flashcard';
+        card.dataset.show = 'word';
+        card.innerHTML = `<strong>${item.kanji}</strong>`;
+        card.addEventListener('click', () => {
+          if (card.dataset.show === 'word') {
+            card.dataset.show = 'reading';
+            card.classList.add('flipped');
+            card.innerHTML = `<ruby><rb>${item.kanji}</rb><rt>${item.reading}</rt></ruby><br><em>${item.meaning}</em>`;
+          } else {
+            card.dataset.show = 'word';
+            card.classList.remove('flipped');
+            card.innerHTML = `<strong>${item.kanji}</strong>`;
+          }
+        });
+        container.appendChild(card);
+      }
+    }
+    // Initialize quiz
+    function initQuiz(vocab) {
+      const quizContainer = document.getElementById('quiz-questions');
+      // pick up to 10 words randomly
+      const questions = shuffle(vocab.slice()).slice(0, Math.min(10, vocab.length));
+      questions.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-question';
+        div.innerHTML = `
+          <p><strong>${idx + 1}. ${item.kanji}</strong></p>
+          <label>Reading (ひらがな): <input type="text" data-type="reading" data-answer="${item.reading.trim()}" /></label><br>
+          <label>Meaning (English): <input type="text" data-type="meaning" data-answer="${item.meaning.trim().toLowerCase()}" /></label>
+        `;
+        quizContainer.appendChild(div);
+      });
+      document.getElementById('check-quiz').addEventListener('click', () => {
+        let correct = 0;
+        let total = 0;
+        const inputs = quizContainer.querySelectorAll('input');
+        inputs.forEach(input => {
+          total++;
+          const userAns = input.value.trim().toLowerCase();
+          const correctAns = input.dataset.answer.trim().toLowerCase();
+          if (userAns === correctAns) {
+            input.classList.add('correct');
+            input.classList.remove('incorrect');
+            correct++;
+          } else {
+            input.classList.add('incorrect');
+            input.classList.remove('correct');
+          }
+        });
+        const resultDiv = document.getElementById('quiz-result');
+        resultDiv.innerHTML = `<p>You answered ${correct} out of ${total} fields correctly.</p>`;
+        resultDiv.className = 'quiz-result';
+      });
+    }
+    // Worksheet generator
+    function initWorksheet(vocab, grammarList) {
+      const list = document.getElementById('worksheet-list');
+      // Generate five vocabulary translation questions
+      const items = shuffle(vocab.slice()).slice(0, Math.min(5, vocab.length));
+      items.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `Translate to English: ${item.kanji}`;
+        li.setAttribute('data-answer', item.meaning);
+        list.appendChild(li);
+      });
+      // Generate grammar practice questions
+      grammarList.slice(0, 3).forEach(g => {
+        const li = document.createElement('li');
+        li.innerHTML = `Use the pattern <strong>${g.pattern}</strong> to make a sentence about yourself.`;
+        list.appendChild(li);
+      });
+    }
+    // Kaiwa prompts
+    function initKaiwa(vocab, grammarList) {
+      const list = document.getElementById('kaiwa-list');
+      // Choose three random words
+      const words = shuffle(vocab.slice()).slice(0, Math.min(3, vocab.length));
+      const patterns = grammarList.slice(0, 2);
+      const prompts = [];
+      if (words.length > 0) {
+        prompts.push(`Try to introduce yourself using the words: ${words.map(w => w.kanji).join(', ')}.`);
+      }
+      if (patterns.length > 0) {
+        prompts.push(`Create a short dialogue using the pattern: ${patterns[0].pattern}.`);
+      }
+      if (vocab.length > 2) {
+        prompts.push('Ask your partner questions using new vocabulary and respond appropriately.');
+      }
+      prompts.forEach(p => {
+        const li = document.createElement('li');
+        li.textContent = p;
+        list.appendChild(li);
+      });
+    }
+    // Reading tasks
+    function initReading(vocab) {
+      const list = document.getElementById('reading-list');
+      // Choose some vocabulary items and ask the learner to write a short paragraph
+      const words = shuffle(vocab.slice()).slice(0, Math.min(5, vocab.length));
+      const li = document.createElement('li');
+      li.textContent = `Write a short paragraph using these words: ${words.map(w => w.kanji).join(', ')}.`;
+      list.appendChild(li);
+    }
+    // Speaking tasks
+    function initSpeaking(vocab) {
+      const list = document.getElementById('speaking-list');
+      // Provide simple speaking prompts
+      const words = shuffle(vocab.slice()).slice(0, Math.min(5, vocab.length));
+      const li1 = document.createElement('li');
+      li1.textContent = 'Read all vocabulary aloud, paying attention to pronunciation.';
+      const li2 = document.createElement('li');
+      li2.textContent = `Record yourself saying a sentence using: ${words.map(w => w.kanji).join(', ')}.`;
+      list.appendChild(li1);
+      list.appendChild(li2);
+    }
+    init();
+  </script>
+</body>
+</html>

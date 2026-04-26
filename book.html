@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Irodori Book</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="data.js"></script>
+</head>
+<body>
+  <header>
+    <h1 id="book-title">Book</h1>
+  </header>
+  <main id="content">
+    <p>Loading…</p>
+  </main>
+  <script>
+    async function loadData() {
+      const params = new URLSearchParams(window.location.search);
+      const book = params.get('book');
+      if (!book) {
+        document.getElementById('content').innerHTML = '<p>Book parameter missing.</p>';
+        return;
+      }
+      const bookNames = {
+        'starter': 'Starter (入門)',
+        'elementary1': 'Elementary 1 (初級1)',
+        'elementary2': 'Elementary 2 (初級2)',
+        'preintermediate': 'Pre‑Intermediate'
+      };
+      document.getElementById('book-title').textContent = bookNames[book] || book;
+      try {
+        // VOCAB_DATA and GRAMMAR_DATA are defined in data.js
+        const vocabData = VOCAB_DATA;
+        const grammarData = GRAMMAR_DATA;
+        const bookVocab = vocabData[book] || {};
+        const bookGrammar = grammarData[book] || {};
+        const lessonNumbers = Array.from(new Set([
+          ...Object.keys(bookVocab),
+          ...Object.keys(bookGrammar)
+        ])).filter(x => x && x !== 'undefined');
+        lessonNumbers.sort((a, b) => parseInt(a) - parseInt(b));
+        let html = '';
+        if (lessonNumbers.length === 0) {
+          html += '<p>No lessons found for this book.</p>';
+        } else {
+          html += '<h2>Lessons</h2><ul class="book-list">';
+          for (const lesson of lessonNumbers) {
+            html += `<li><a href="lesson.html?book=${book}&lesson=${lesson}">Lesson ${lesson}</a></li>`;
+          }
+          html += '</ul>';
+        }
+        html += `<a class="nav-link" href="exam.html?book=${book}">Take Final Exam</a>`;
+        document.getElementById('content').innerHTML = html;
+      } catch (err) {
+        console.error(err);
+        document.getElementById('content').innerHTML = '<p>Error loading data.</p>';
+      }
+    }
+    loadData();
+  </script>
+</body>
+</html>

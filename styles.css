@@ -1,0 +1,144 @@
+/* Basic styling for the Irodori vocabulary app */
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f9f9f9;
+  color: #333;
+}
+
+header {
+  background-color: #007acc;
+  color: white;
+  padding: 1rem;
+  text-align: center;
+}
+
+main {
+  padding: 1rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+h1, h2, h3 {
+  color: #007acc;
+}
+
+ul.book-list {
+  list-style: none;
+  padding-left: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+ul.book-list li {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 1rem;
+  flex: 1 1 calc(50% - 2rem);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+ul.book-list li a {
+  text-decoration: none;
+  color: #007acc;
+  font-weight: bold;
+}
+
+table.vocab-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+table.vocab-table th, table.vocab-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+table.vocab-table th {
+  background-color: #007acc;
+  color: white;
+}
+
+.card-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.flashcard {
+  flex: 1 1 calc(33% - 1rem);
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.flashcard.flipped {
+  background-color: #f0f8ff;
+}
+
+.quiz-section {
+  margin-top: 2rem;
+}
+
+.quiz-question {
+  margin-bottom: 1rem;
+}
+
+.quiz-question input {
+  padding: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.quiz-result {
+  margin-top: 1rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.correct {
+  background-color: #c8e6c9;
+  border: 1px solid #388e3c;
+}
+
+.incorrect {
+  background-color: #ffcdd2;
+  border: 1px solid #d32f2f;
+}
+
+.worksheet, .kaiwa, .reading, .speaking, .exam-section {
+  margin-top: 2rem;
+}
+
+.worksheet h3, .kaiwa h3, .reading h3, .speaking h3, .exam-section h3 {
+  margin-bottom: 0.5rem;
+}
+
+.worksheet ul, .kaiwa ul, .reading ul, .speaking ul, .exam-section ul {
+  list-style: decimal;
+  padding-left: 1.5rem;
+}
+
+.nav-link {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #007acc;
+  color: white;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  background-color: #005fa3;
+}
