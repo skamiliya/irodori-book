@@ -1,4 +1,5 @@
 // Auto-generated data file for Irodori app
+
 const VOCAB_DATA = {
   "starter": {
     "1": [
