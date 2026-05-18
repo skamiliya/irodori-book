@@ -1,0 +1,126 @@
+<!--
+  Flashcard Page for Irodori Book
+  This page allows you to create simple flashcards with Kanji, Furigana, and meaning (arti).
+  Cards are stored in the browser's localStorage so they persist between sessions on the same device.
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Irodori Flashcards</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 20px;
+        line-height: 1.5;
+      }
+      h1 {
+        font-size: 1.6em;
+        margin-bottom: 0.5em;
+      }
+      .flashcard-form {
+        margin-bottom: 1em;
+        max-width: 600px;
+      }
+      .flashcard-form label {
+        display: block;
+        margin-top: 0.5em;
+      }
+      .flashcard-form input {
+        width: 100%;
+        padding: 0.4em;
+        box-sizing: border-box;
+      }
+      .flashcard-form button {
+        margin-top: 0.8em;
+        padding: 0.5em 1em;
+        cursor: pointer;
+      }
+      .flashcard-list {
+        max-width: 600px;
+      }
+      .flashcard {
+        border: 1px solid #ccc;
+        padding: 0.6em;
+        margin: 0.4em 0;
+        border-radius: 4px;
+      }
+      .flashcard button {
+        margin-left: 1em;
+        padding: 0.2em 0.6em;
+        font-size: 0.9em;
+        cursor: pointer;
+      }
+    </style>
+</head>
+<body>
+    <h1>Flashcards</h1>
+    <p>Masukkan kartu dengan format Kanji, Furigana, dan arti (Indonesia/English). Data disimpan di browser Anda.</p>
+    <div class="flashcard-form">
+        <label>
+            Kanji:
+            <input type="text" id="kanji" placeholder="漢字" />
+        </label>
+        <label>
+            Furigana:
+            <input type="text" id="furigana" placeholder="ふりがな" />
+        </label>
+        <label>
+            Arti:
+            <input type="text" id="meaning" placeholder="Arti" />
+        </label>
+        <button id="add">Tambah Flashcard</button>
+    </div>
+    <div class="flashcard-list" id="list"></div>
+<script>
+// Load existing cards from localStorage and display them
+function loadCards() {
+    const list = document.getElementById('list');
+    list.innerHTML = '';
+    const cards = JSON.parse(localStorage.getItem('flashcards') || '[]');
+    cards.forEach((card, idx) => {
+        const div = document.createElement('div');
+        div.className = 'flashcard';
+        div.innerHTML = `<strong>${card.kanji}</strong> [${card.furigana}] — ${card.meaning} <button data-index="${idx}">Hapus</button>`;
+        list.appendChild(div);
+    });
+}
+
+// Add a new card to the list and save to localStorage
+document.getElementById('add').addEventListener('click', function() {
+    const kanjiInput = document.getElementById('kanji');
+    const furiganaInput = document.getElementById('furigana');
+    const meaningInput = document.getElementById('meaning');
+    const kanji = kanjiInput.value.trim();
+    const furigana = furiganaInput.value.trim();
+    const meaning = meaningInput.value.trim();
+    if (!kanji || !furigana || !meaning) {
+        alert('Silakan lengkapi semua kolom.');
+        return;
+    }
+    const cards = JSON.parse(localStorage.getItem('flashcards') || '[]');
+    cards.push({ kanji, furigana, meaning });
+    localStorage.setItem('flashcards', JSON.stringify(cards));
+    // Reset form inputs
+    kanjiInput.value = '';
+    furiganaInput.value = '';
+    meaningInput.value = '';
+    loadCards();
+});
+
+// Delete a card from the list and update localStorage
+document.getElementById('list').addEventListener('click', function(e) {
+    if (e.target.tagName === 'BUTTON') {
+        const idx = parseInt(e.target.getAttribute('data-index'), 10);
+        let cards = JSON.parse(localStorage.getItem('flashcards') || '[]');
+        cards.splice(idx, 1);
+        localStorage.setItem('flashcards', JSON.stringify(cards));
+        loadCards();
+    }
+});
+
+// Initialize on page load
+window.addEventListener('load', loadCards);
+</script>
+</body>
+</html>
