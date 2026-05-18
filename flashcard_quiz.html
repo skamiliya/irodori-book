@@ -1,0 +1,123 @@
+<!--
+  Flashcard Quiz Page for Irodori Book
+  This page allows the user to review flashcards created in flashcard.html.
+  It loads cards from localStorage and presents them one at a time so you can
+  practice recalling the meaning. Click "Tampilkan Arti" to reveal the
+  translation and "Kartu Berikutnya" to move to another card. Cards are
+  presented in random order each session.
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <title>Latihan Flashcard</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 20px;
+        line-height: 1.5;
+      }
+      h1 {
+        font-size: 1.6em;
+        margin-bottom: 0.5em;
+      }
+      #quiz-container {
+        margin-top: 1em;
+        max-width: 600px;
+      }
+      .card-display {
+        border: 1px solid #ccc;
+        padding: 1em;
+        border-radius: 4px;
+        margin-bottom: 1em;
+        text-align: center;
+        font-size: 1.4em;
+      }
+      .actions button {
+        padding: 0.5em 1em;
+        margin-right: 0.5em;
+        cursor: pointer;
+        font-size: 1em;
+      }
+    </style>
+</head>
+<body>
+    <h1>Latihan Flashcard</h1>
+    <p>Gunakan halaman ini untuk menguji pengetahuan Anda. Klik "Tampilkan Arti" untuk melihat arti, kemudian pilih "Kartu Berikutnya" untuk pindah ke kartu berikutnya. Kartu diacak setiap sesi.</p>
+    <div id="quiz-container">
+      <div id="card-container" class="card-display">Tidak ada kartu.</div>
+      <div class="actions">
+        <button id="show-answer" disabled>Tampilkan Arti</button>
+        <button id="next-card">Kartu Berikutnya</button>
+      </div>
+    </div>
+<script>
+// Retrieve cards from localStorage
+function getCards() {
+  return JSON.parse(localStorage.getItem('flashcards') || '[]');
+}
+
+// Shuffle an array (Fisher-Yates algorithm)
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+const cardContainer = document.getElementById('card-container');
+const showBtn = document.getElementById('show-answer');
+const nextBtn = document.getElementById('next-card');
+
+let cards = [];
+let currentIndex = 0;
+let showMeaning = false;
+
+function updateDisplay() {
+  if (cards.length === 0) {
+    cardContainer.textContent = 'Tidak ada kartu. Silakan tambah kartu di halaman Flashcards.';
+    showBtn.disabled = true;
+    return;
+  }
+  const card = cards[currentIndex];
+  if (!showMeaning) {
+    // Display kanji and furigana only
+    cardContainer.innerHTML = `<strong>${card.kanji}</strong> [${card.furigana}]`;
+    showBtn.disabled = false;
+  } else {
+    // Display meaning as well
+    cardContainer.innerHTML = `<strong>${card.kanji}</strong> [${card.furigana}] — ${card.meaning}`;
+    showBtn.disabled = true;
+  }
+}
+
+function showAnswer() {
+  showMeaning = true;
+  updateDisplay();
+}
+
+function nextCard() {
+  if (cards.length === 0) {
+    updateDisplay();
+    return;
+  }
+  // Move to next card
+  currentIndex = (currentIndex + 1) % cards.length;
+  showMeaning = false;
+  updateDisplay();
+}
+
+// Initialize quiz on load
+window.addEventListener('load', function() {
+  cards = shuffle(getCards().slice());
+  currentIndex = 0;
+  showMeaning = false;
+  updateDisplay();
+});
+
+showBtn.addEventListener('click', showAnswer);
+nextBtn.addEventListener('click', nextCard);
+</script>
+</body>
+</html>
